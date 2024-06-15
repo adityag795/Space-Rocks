@@ -1,0 +1,75 @@
+[gd_scene load_steps=10 format=3 uid="uid://cn6lpuyk80knp"]
+
+[ext_resource type="Script" path="res://player/player.gd" id="1_0dyip"]
+[ext_resource type="Texture2D" uid="uid://byjlamtq07vga" path="res://assets/player_ship.png" id="1_5a157"]
+[ext_resource type="PackedScene" uid="uid://c08abu4s02k66" path="res://player/bullet.tscn" id="2_xjy01"]
+[ext_resource type="PackedScene" uid="uid://8hniyh2kpcv0" path="res://explosion.tscn" id="4_ydel5"]
+[ext_resource type="AudioStream" uid="uid://d321t20kol6ry" path="res://assets/sounds/laser.ogg" id="5_0pdxc"]
+[ext_resource type="AudioStream" uid="uid://dx8un04x32e0q" path="res://assets/sounds/engine.ogg" id="6_vhmyk"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5xuks"]
+radius = 31.0161
+
+[sub_resource type="Curve" id="Curve_tiv80"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.0261067), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_ffur0"]
+offsets = PackedFloat32Array(0, 0.784849)
+colors = PackedColorArray(0.964706, 0.541176, 0, 1, 0.885038, 0.216928, 0.13383, 1)
+
+[node name="Player" type="RigidBody2D"]
+max_contacts_reported = 1
+contact_monitor = true
+linear_damp = 1.0
+angular_damp = 5.0
+script = ExtResource("1_0dyip")
+bullet_scene = ExtResource("2_xjy01")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+rotation = 1.5708
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("1_5a157")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_5xuks")
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(50, 0)
+
+[node name="GunCooldown" type="Timer" parent="."]
+one_shot = true
+autostart = true
+
+[node name="Explosion" parent="." instance=ExtResource("4_ydel5")]
+
+[node name="InvulnerabilityTimer" type="Timer" parent="."]
+wait_time = 2.0
+one_shot = true
+
+[node name="LaserSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("5_0pdxc")
+volume_db = -10.0
+
+[node name="EngineSound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("6_vhmyk")
+
+[node name="Exhaust" type="CPUParticles2D" parent="."]
+show_behind_parent = true
+position = Vector2(-28, 0)
+rotation = 3.14159
+amount = 25
+lifetime = 0.1
+local_coords = true
+emission_shape = 3
+emission_rect_extents = Vector2(1, 5)
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_max = 400.0
+scale_amount_max = 8.0
+scale_amount_curve = SubResource("Curve_tiv80")
+color_ramp = SubResource("Gradient_ffur0")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
+[connection signal="timeout" from="GunCooldown" to="." method="_on_gun_cooldown_timeout"]
+[connection signal="timeout" from="InvulnerabilityTimer" to="." method="_on_invulnerability_timer_timeout"]
